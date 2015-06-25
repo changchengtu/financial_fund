@@ -91,17 +91,6 @@ for name in nameT_list:
 				biasT_rate_dict[name] = ma_dict['pre_bias_v']
 
 
-		'''
-		## ING安泰投信首創的D檔投資法
-		## in 10 days
-		res = f.drop(two_year.iloc[0:10], name)
-		drop_rate = 0.07
-		if res[name] == None:
-			None
-		elif res[name]<-drop_rate:
-			f.plot_line(name,str(res[name])+'-'+name,df_period,df_short,'Taiwan/output/drop')
-		'''
-
 ## top N bias
 sorted_biasT_rate_dict = dict(sorted(biasT_rate_dict.items(), key=operator.itemgetter(1), reverse=False)[:40])
 
@@ -162,17 +151,6 @@ for name in nameF_list:
 			if ma_dict['pre_bias_v'] < -4:
 				biasF_rate_dict[name] = ma_dict['pre_bias_v']
 
-
-		'''
-		## ING安泰投信首創的D檔投資法
-		## in 10 days
-		res = f.drop(three_year.iloc[0:10], name)
-		drop_rate = 0.08
-		if res[name] == None:
-			None
-		elif res[name]<-drop_rate:
-			f.plot_line(name,str(res[name])+'-'+name,df_period,df_short,'Foreign/output/drop')
-		'''
 
 ## top N bias
 sorted_biasF_rate_dict = dict(sorted(biasF_rate_dict.items(), key=operator.itemgetter(1), reverse=False)[:60])
