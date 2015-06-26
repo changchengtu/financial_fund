@@ -44,10 +44,33 @@ for path, subdirs, files in os.walk(current_folder+'/Foreign/output'):
 
 hot_terms = []
 
-print '-------------'
-print 'Taiwan'
-print '-------------'
+def BIAS_ratio(name_list, df, threshold):
+	bias_dict = {}
+	for name in name_list:
+		try:
+			ma_dict, df_period, df_short = f.MA(name,df)
+		except:
+			continue
+		## seasonal BIAS
+		slope_rate = -0.001
+		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
+			if ma_dict['pre_bias_v'] < threshold:
+				bias_dict[name] = ma_dict['pre_bias_v']
 
+	return bias_dict
+
+
+def top_N_bias(bias_dict, df, save_path, N):
+	## top N bias
+	sorted_bias_dict = dict(sorted(bias_dict.items(), key=operator.itemgetter(1), reverse=False)[:N])
+	for fund_name in sorted_bias_dict:
+		print fund_name
+		ma_dict, df_period, df_short = f.MA(fund_name,df)
+		rate = sorted_bias_dict[fund_name]
+		f.plot_line(fund_name,str(rate)+'_'+fund_name, df_period, df_short, save_path)
+
+
+print '\n-------------Taiwan-------------'
 
 two_year = f.getTaiwanData(24)
 six_m = f.getTaiwanData(6)
@@ -56,122 +79,96 @@ three_m = f.getTaiwanData(3)
 nameT_list = six_m.columns.tolist()
 nameT_list.remove('日期')
 
-longT_term_list = []
-biasT_rate_dict = {}
+
+## classify funds
+indexT_list = [ n for n in nameT_list if '指數' in n or 'ETF' in n or '台灣50' in n]
+interestT_list = [ n for n in nameT_list if '配息' in n or '月配' in n or '年配' in n]
+currencyT_list = [ n for n in nameT_list if '貨幣' in n]
+bondT_list = [ n for n in nameT_list if '債卷' in n]
+stockT_list = list(set(nameT_list)-set(currencyT_list)-set(interestT_list)-set(indexT_list)-set(bondT_list))
 
 
-## for loop is just for name list
-for name in nameT_list:
-	## (a year) if this fund is growing
-	if '配息' in name or '貨幣' in name or '月配' in name or '年配' in name or '短期' in name:
-		continue
 
-	else:
-		try:
-			ma_dict, df_period, df_short = f.MA(name,two_year)
-		except:
-			continue
+print '--index--'
 
-		high_bet_rate = 0.02
-
-		## long term and median term go up
-		long_slope_rate = -0.001
-		mid_slope_rate = 0.001	
-		if ma_dict['lon_s']>long_slope_rate and ma_dict['lon_going_up']:
-			if ma_dict['med_s']>mid_slope_rate and ma_dict['mid_going_up']:
-				if (ma_dict['med_v']-ma_dict['lon_v'])/ma_dict['lon_v'] < high_bet_rate:
-					f.plot_line(name,name,df_period, df_short, 'Taiwan/output/long term')
-					longT_term_list.append(name)
+biasT_rate_dict = BIAS_ratio(indexT_list, two_year, 10)
+top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/index', 40)
 
 
-		## seasonal BIAS
-		slope_rate = -0.001
-		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
-			if ma_dict['pre_bias_v'] < -4:
-				biasT_rate_dict[name] = ma_dict['pre_bias_v']
+print '--stock--'
 
-
+biasT_rate_dict = BIAS_ratio(stockT_list, two_year, -3)
 ## top N bias
-sorted_biasT_rate_dict = dict(sorted(biasT_rate_dict.items(), key=operator.itemgetter(1), reverse=False)[:40])
-
-for fund_name in sorted_biasT_rate_dict:
-	print fund_name
-	ma_dict, df_period, df_short = f.MA(fund_name,two_year)
-
-	rate = sorted_biasT_rate_dict[fund_name]
-	f.plot_line(fund_name, str(rate)+'-'+fund_name,df_period, df_short, 'Taiwan/output/BIAS')
-	for t in f.get_hot_term(fund_name):
-		hot_terms.append(t)
-
-	if fund_name in longT_term_list:
-		f.plot_line(fund_name, str(rate)+'-'+fund_name,df_period, df_short, 'Taiwan/output/long&BIAS')
+top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/stock', 40)
 
 
-
-print '-------------'
-print 'Foreign'
-print '-------------'
+print '\n-------------Foreign-------------'
 
 three_year = f.getForeignData(36)
 six_m = f.getForeignData(6)
 three_m = f.getForeignData(3)
-
 	
 nameF_list = six_m.columns.tolist()
 nameF_list.remove('日期')
 
-longF_term_list = []
-biasF_rate_dict = {}
-## 'for loop' is just for name list
-for name in nameF_list:
-		## (a year) if this fund is growing
-	if '配息' in name or '貨幣' in name or '月配' in name or '年配' in name or '短期' in name:
-		continue
+## classify funds
+cat_df = pd.read_csv('fundF_category.csv')
 
-	else:
-		try:
-			ma_dict, df_period, df_short = f.MA(name,three_year)
-		except:
-			continue
+stockF_list = []
+bondF_list = [] 
+indexF_list = []
+balanceF_list = []
+otherF_list = []
+currencyF_list = []
 
-		high_bet_rate = 0.02
-		## long term and median term go up
-		long_slope_rate = -0.001
-		mid_slope_rate = 0	
-		if ma_dict['lon_s']>long_slope_rate and ma_dict['lon_going_up']:
-			if ma_dict['med_s']>mid_slope_rate and ma_dict['mid_going_up']:
-				if (ma_dict['med_v']-ma_dict['lon_v'])/ma_dict['lon_v'] < high_bet_rate:
-					f.plot_line(name,name,df_period, df_short, 'Foreign/output/long term')
-					longF_term_list.append(name)
-
-
-		## seasonal BIAS
-		slope_rate = -0.001
-		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
-			if ma_dict['pre_bias_v'] < -4:
-				biasF_rate_dict[name] = ma_dict['pre_bias_v']
+attr = cat_df.columns.tolist()
+for index, row in cat_df.iterrows():
+	try:
+		if '股票型' in row[attr[2]]:
+			stockF_list.append(f.text_clean(row[attr[0]]))
+		elif '固定收益型' in row[attr[2]]:
+			bondF_list.append(f.text_clean(row[attr[0]]))
+		elif '指數' in row[attr[2]]:
+			indexF_list.append(f.text_clean(row[attr[0]]))
+		elif '貨幣市場型' in row[attr[2]]:
+			currencyF_list.append(f.text_clean(row[attr[0]]))
+		elif '平衡型' in row[attr[2]]:
+			balanceF_list.append(f.text_clean(row[attr[0]]))
+		else:
+			otherF_list.append(f.text_clean(row[attr[0]]))
+	except:
+		print attr[2], attr[0], row[attr[2]], row[attr[0]]
 
 
+
+print '--index--'
+biasF_rate_dict = BIAS_ratio(indexF_list, three_year, 20)
 ## top N bias
-sorted_biasF_rate_dict = dict(sorted(biasF_rate_dict.items(), key=operator.itemgetter(1), reverse=False)[:60])
-for fund_name in sorted_biasF_rate_dict:
-	print fund_name
-
-	ma_dict, df_period, df_short = f.MA(fund_name,three_year)
-
-	rate = sorted_biasF_rate_dict[fund_name]
-	f.plot_line(fund_name,str(rate)+'-'+fund_name, df_period, df_short, 'Foreign/output/BIAS')
-	for t in f.get_hot_term(fund_name):
-		hot_terms.append(t)
-
-	if fund_name in longF_term_list:
-		f.plot_line(fund_name, str(rate)+'-'+fund_name, df_period, df_short, 'Foreign/output/long&BIAS')
+top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/index', 60)
 
 
-print '-------------'
-print 'Total report'
-print '-------------'
+print '--stock--'
+biasF_rate_dict = BIAS_ratio(stockF_list, three_year, -4)
+## top N bias
+top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/stock', 60)
 
+
+print '--balance--'
+biasF_rate_dict = BIAS_ratio(balanceF_list, three_year, 0)
+## top N bias
+top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/balance', 60)
+
+
+print '--bond--'
+biasF_rate_dict = BIAS_ratio(bondF_list, three_year, 0)
+## top N bias
+top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/bond', 60)
+
+
+
+
+
+print '-------------Total report-------------'
 ## hot terms
 hot_terms = list(set(hot_terms))
 tmp_str = ''

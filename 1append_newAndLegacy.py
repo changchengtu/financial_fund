@@ -117,6 +117,19 @@ print 'Taiwan is finished'
 ######## foreign folder
 ## get data
 def get_f_data_today(LaDate):
+	## fund data
+	fund_url = 'http://smart.tdcc.com.tw/opendata/getOD.ashx?id=3-2'
+
+	cj = cookielib.CookieJar()
+	opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+	resp = opener.open(fund_url)
+	ori = text_clean(resp.read())
+	## save file
+	open('fundF_category.csv', 'wr').write(ori)
+	#####################
+
+
+	## fund net value
 	fund_url = 'http://smart.tdcc.com.tw/opendata/getOD.ashx?id=3-4'
 
 	cj = cookielib.CookieJar()

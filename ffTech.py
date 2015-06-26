@@ -174,24 +174,24 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	## long term growrate
 	ini = df_period.dropna().iloc[0][name]
 
-	df_period[name+'perf'] = ((df_period[name]-ini)/ini)*100
-	df_period[shortT+'perf'] = pd.rolling_mean(df_period[name+'perf'], window=days1, min_periods=days1-1)
-	df_period[medianT+'perf'] = pd.rolling_mean(df_period[name+'perf'], window=days2, min_periods=days2-3)
-	df_period[longT+'perf'] = pd.rolling_mean(df_period[name+'perf'], window=days3, min_periods=days3-6)
+	df_period[name+'-perf'] = ((df_period[name]-ini)/ini)*100
+	df_period[shortT+'-perf'] = pd.rolling_mean(df_period[name+'-perf'], window=days1, min_periods=days1-1)
+	df_period[medianT+'-perf'] = pd.rolling_mean(df_period[name+'-perf'], window=days2, min_periods=days2-3)
+	df_period[longT+'-perf'] = pd.rolling_mean(df_period[name+'-perf'], window=days3, min_periods=days3-6)
 	df_period[shortT] = pd.rolling_mean(df_period[name], window=days1, min_periods=days1-1)
 	df_period[medianT] = pd.rolling_mean(df_period[name], window=days2, min_periods=days2-3)
 	df_period[longT] = pd.rolling_mean(df_period[name], window=days3, min_periods=days3-6)
 
 	## short term growrate
 	short_df = df_period[df_period['日期']>str(today-relativedelta(months=3))]
-	ini_perf = short_df.dropna().iloc[0][name+'perf']
+	ini_perf = short_df.dropna().iloc[0][name+'-perf']
 	ini_short = short_df.dropna().iloc[0][name]
 
 	## a,b,c -> (((c-a)/a-(b-a)/a)*a)b = (c-b)/b
-	short_df[name+'perf'] = ((short_df[name+'perf']-ini_perf)*ini)/ini_short
-	short_df[shortT+'perf'] = ((short_df[shortT+'perf']-ini_perf)*ini)/ini_short
-	short_df[medianT+'perf'] = ((short_df[medianT+'perf']-ini_perf)*ini)/ini_short
-	short_df[longT+'perf'] = ((short_df[longT+'perf']-ini_perf)*ini)/ini_short
+	short_df[name+'-perf'] = ((short_df[name+'-perf']-ini_perf)*ini)/ini_short
+	short_df[shortT+'-perf'] = ((short_df[shortT+'-perf']-ini_perf)*ini)/ini_short
+	short_df[medianT+'-perf'] = ((short_df[medianT+'-perf']-ini_perf)*ini)/ini_short
+	short_df[longT+'-perf'] = ((short_df[longT+'-perf']-ini_perf)*ini)/ini_short
 
 	## calculate slope changes
 	tmp_df = df_period.iloc[-3:]
@@ -267,10 +267,15 @@ def plot_line(fund_name, png_name, df_long,df_short, folder):
 	
 	plt.figure()
 	###
-	y_arr = [fund_name,'5MA','20MA','60MA']
-	y_arr_perf = [fund_name+'perf','5MA'+'perf','20MA'+'perf','60MA'+'perf']
+
+	df_long = df_long.rename(columns={fund_name:'original',fund_name+'-perf':'original-perf'})
+	df_short = df_short.rename(columns={fund_name:'original',fund_name+'-perf':'original-perf'})
+
+	y_arr = ['original','5MA','20MA','60MA']
+	y_arr_perf = ['original-perf','5MA-perf','20MA-perf','60MA-perf']
+
 	## subplot set
-	fig, axes = plt.subplots(nrows=2, ncols=2,sharex=False, figsize=(16,7))
+	fig, axes = plt.subplots(nrows=2, ncols=2,sharex=False, figsize=(16,8))
 
 	ax_long = df_long.plot(kind='line',
 			y = y_arr,
@@ -297,8 +302,11 @@ def plot_line(fund_name, png_name, df_long,df_short, folder):
 		   	title = 'short term performance'
 			)
 
-	plt.setp(ax_long.get_xticklabels(), visible=True)
-	plt.setp(ax_short.get_xticklabels(), visible=True)
+	plt.setp(ax_long.get_xticklabels(), visible=True, rotation=10, horizontalalignment='right')
+	plt.setp(ax_short.get_xticklabels(), visible=True, rotation=10, horizontalalignment='right')
+	plt.setp(ax_long_perf.get_xticklabels(), visible=True, rotation=10, horizontalalignment='right')
+	plt.setp(ax_short_perf.get_xticklabels(), visible=True, rotation=10, horizontalalignment='right')
+	
 	fig.savefig(current_path+'/'+folder+'/'+png_name+'.png')
 	plt.close('all')
 
@@ -333,5 +341,12 @@ def nameT_dict():
 	for row in csv.DictReader(open('codeT_name.txt','rb')):
 		tmp_dict[row['code']] = row['name']
 	return tmp_dict
+
+def text_clean(text):
+	text = text.replace('—','-')
+	text = text.replace('）',')').replace('（','(')
+	text = text.replace(' ','')
+	text = text.replace('/','-')
+	return text
 
 
