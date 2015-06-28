@@ -52,7 +52,7 @@ def BIAS_ratio(name_list, df, threshold):
 		except:
 			continue
 		## seasonal BIAS
-		slope_rate = -0.001
+		slope_rate = -0.05
 		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
 			if ma_dict['pre_bias_v'] < threshold:
 				bias_dict[name] = ma_dict['pre_bias_v']
@@ -91,7 +91,7 @@ stockT_list = list(set(nameT_list)-set(currencyT_list)-set(interestT_list)-set(i
 
 print '--index--'
 
-biasT_rate_dict = BIAS_ratio(indexT_list, two_year, 10)
+biasT_rate_dict = BIAS_ratio(indexT_list, two_year, 0)
 top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/index', 40)
 
 
@@ -140,12 +140,12 @@ for index, row in cat_df.iterrows():
 		print attr[2], attr[0], row[attr[2]], row[attr[0]]
 
 
-
+'''
 print '--index--'
 biasF_rate_dict = BIAS_ratio(indexF_list, three_year, 20)
 ## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/index', 60)
-
+'''
 
 print '--stock--'
 biasF_rate_dict = BIAS_ratio(stockF_list, three_year, -4)

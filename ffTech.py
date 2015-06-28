@@ -194,9 +194,10 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	short_df[longT+'-perf'] = ((short_df[longT+'-perf']-ini_perf)*ini)/ini_short
 
 	## calculate slope changes
-	tmp_df = df_period.iloc[-3:]
+	days = 5
+	tmp_df = df_period.iloc[-days:]
 	tmp_df['id'] = tmp_df.index
-	pre_tmp_df = df_period.iloc[-6:-3]
+	pre_tmp_df = df_period.iloc[-2*days:-days]
 	pre_tmp_df['id'] = pre_tmp_df.index
 
 	## short term slope
