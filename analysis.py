@@ -52,7 +52,7 @@ def BIAS_ratio(name_list, df, threshold):
 		except:
 			continue
 		## seasonal BIAS
-		slope_rate = -0.05
+		slope_rate = -0.03
 		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
 			if ma_dict['pre_bias_v'] < threshold:
 				bias_dict[name] = ma_dict['pre_bias_v']
@@ -180,7 +180,7 @@ open('hot_terms.txt', 'wr').write(tmp_str)
 ## bought Taiwan
 two_year = f.getTaiwanData(24)
 necessary = ['復華全球資產證券化基金A','群益印度中小基金','群益印度中小基金',
-			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金']
+			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金','瀚亞巴西基金']
 
 for name in necessary:
 	ma_dict, df_period, df_short = f.MA(name,two_year)
