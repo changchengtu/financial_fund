@@ -42,7 +42,6 @@ for path, subdirs, files in os.walk(current_folder+'/Foreign/output'):
 		os.mkdir(current_folder+'/Foreign/output/'+folder_name)
 
 
-hot_terms = []
 
 def BIAS_ratio(name_list, df, threshold):
 	bias_dict = {}
@@ -72,7 +71,7 @@ def top_N_bias(bias_dict, df, save_path, N):
 
 print '\n-------------Taiwan-------------'
 
-two_year = f.getTaiwanData(24)
+two_year = f.getTaiwanData(25)
 six_m = f.getTaiwanData(6)
 three_m = f.getTaiwanData(3)
 
@@ -141,12 +140,13 @@ for index, row in cat_df.iterrows():
 
 
 '''
+'''
 print '--index--'
 biasF_rate_dict = BIAS_ratio(indexF_list, three_year, 20)
 ## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/index', 60)
 '''
-
+'''
 print '--stock--'
 biasF_rate_dict = BIAS_ratio(stockF_list, three_year, -4)
 ## top N bias
@@ -167,18 +167,10 @@ top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/bond', 60)
 
 
 
-
-print '-------------Total report-------------'
-## hot terms
-hot_terms = list(set(hot_terms))
-tmp_str = ''
-for s in hot_terms:
-	tmp_str+=s+'\n'
-open('hot_terms.txt', 'wr').write(tmp_str)
-	
+print '-------------bought-------------'
 
 ## bought Taiwan
-two_year = f.getTaiwanData(24)
+two_year = f.getTaiwanData(25)
 necessary = ['復華全球資產證券化基金A','群益印度中小基金','群益印度中小基金',
 			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金','瀚亞巴西基金']
 
@@ -189,7 +181,7 @@ for name in necessary:
 
 ## bought Foreign
 three_year = f.getForeignData(36)
-necessary = ['富蘭克林坦伯頓全球投資系列-全球平衡基金美元A(Qdis)股','富達基金－新興歐非中東基金(美元)']
+necessary = ['富蘭克林坦伯頓全球投資系列-全球平衡基金美元A(Qdis)股','富達基金－新興歐非中東基金(美元)','富蘭克林坦伯頓全球投資系列-亞洲成長基金美元A(Ydis)股']
 
 for name in necessary:
 	ma_dict, df_period, df_short = f.MA(name,three_year)

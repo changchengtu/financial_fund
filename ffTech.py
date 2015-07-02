@@ -157,20 +157,12 @@ def avgLow(df_period):
 
 	return results
 
-## moving average
-def MA(name, df_period, days1=5, days2=20, days3=60):
-	#print '-------------------------'
-	#print 'moving average'
-	#print '-------------------------'
+def divide_df(name, df_period, days1=5, days2=20, days3=60):
 
 	shortT = str(days1)+'MA'
 	medianT = str(days2)+'MA'
 	longT = str(days3)+'MA'
-	#df_period[name+'perf'] = df_period[name]
-	df_period = df_period[['日期',name]]
 
-
-	#df_period[name+'perf'] = df_period[name]
 	## long term growrate
 	ini = df_period.dropna().iloc[0][name]
 
@@ -182,6 +174,16 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	df_period[medianT] = pd.rolling_mean(df_period[name], window=days2, min_periods=days2-3)
 	df_period[longT] = pd.rolling_mean(df_period[name], window=days3, min_periods=days3-6)
 
+
+	## seasonal BIAS for long-term
+	df_period['bias'] = (df_period[name]-df_period[longT])/df_period[longT]
+	df_period['bias_abs'] = (df_period['bias']**2)**(0.5)
+	## seasonal BIAS average
+	df_period['moving_bias'] = pd.rolling_mean(df_period['bias_abs'], window=days3, min_periods=days3-6)
+	df_period['moving_bias'] = df_period['moving_bias']*100
+	df_period['60MA-perf-addSTD'] = df_period['60MA-perf']+df_period['moving_bias']
+	df_period['60MA-perf-minusSTD'] = df_period['60MA-perf']-df_period['moving_bias']
+
 	## short term growrate
 	short_df = df_period[df_period['日期']>str(today-relativedelta(months=3))]
 	ini_perf = short_df.dropna().iloc[0][name+'-perf']
@@ -192,6 +194,26 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	short_df[shortT+'-perf'] = ((short_df[shortT+'-perf']-ini_perf)*ini)/ini_short
 	short_df[medianT+'-perf'] = ((short_df[medianT+'-perf']-ini_perf)*ini)/ini_short
 	short_df[longT+'-perf'] = ((short_df[longT+'-perf']-ini_perf)*ini)/ini_short
+
+	## seasional BIAS for short-term
+	short_df['bias'] = (short_df[name]-short_df[longT])/short_df[longT]
+	short_df['bias_abs'] = (short_df['bias']**2)**(0.5)
+	bias_avg_short = float(int((short_df['bias_abs'].mean(axis=0))*1000))/10
+	short_df['60MA-perf-addSTD'] = short_df['60MA-perf']+bias_avg_short 
+	short_df['60MA-perf-minusSTD'] = short_df['60MA-perf']-bias_avg_short 
+
+	return df_period, short_df
+
+
+## moving average
+def MA(name, df_period, days1=5, days2=20, days3=60):
+
+	shortT = str(days1)+'MA'
+	medianT = str(days2)+'MA'
+	longT = str(days3)+'MA'
+
+	df_period = df_period[['日期',name]]
+	df_period, short_df = divide_df(name, df_period, days1, days2, days3)
 
 	## calculate slope changes
 	days = 5
@@ -232,17 +254,9 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	med = df_period[medianT].iloc[-1]
 	lon = df_period[longT].iloc[-1]
 
-	## seasonal BIAS
-	pre_bias = []
-	for i in range(-4,1,1):
-		day_bias = (df_period[name].iloc[i]-df_period[longT].iloc[i])/df_period[longT].iloc[i]
-		pre_bias.append(day_bias)
+	pre_bias_v = float(int((df_period['bias'].dropna().iloc[-1])*1000))/10
 
-	## find the latest value
-	pre_bias = [x for x in pre_bias if str(x) != 'nan']
-	pre_bias_v = float(int(pre_bias[-1]*1000))/10
 
-	pre_bias_avg = numpy.nanmean(pre_bias)
 
 	return_dict = {
 		'sho_s':short_slope,
@@ -254,9 +268,7 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 		'lon_v':lon,
 		'mid_going_up': mid_going_up,
 		'lon_going_up': lon_going_up,
-		'pre_bias': pre_bias,
 		'pre_bias_v': pre_bias_v,
-		'pre_bias_avg': pre_bias_avg
 	}
 
 	#print df_period
@@ -265,7 +277,6 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 
 
 def plot_line(fund_name, png_name, df_long,df_short, folder):
-	
 	plt.figure()
 	###
 
@@ -273,7 +284,7 @@ def plot_line(fund_name, png_name, df_long,df_short, folder):
 	df_short = df_short.rename(columns={fund_name:'original',fund_name+'-perf':'original-perf'})
 
 	y_arr = ['original','5MA','20MA','60MA']
-	y_arr_perf = ['original-perf','5MA-perf','20MA-perf','60MA-perf']
+	y_arr_perf = ['original-perf','5MA-perf','20MA-perf','60MA-perf','60MA-perf-addSTD','60MA-perf-minusSTD']
 
 	## subplot set
 	fig, axes = plt.subplots(nrows=2, ncols=2,sharex=False, figsize=(16,8))
