@@ -47,8 +47,6 @@ def get_index_today():
 	for i in range(len(ori.split('"'))):
 		print data[2*i+1], data[2*i+2]
 	
-	#df = pd.DataFrame.from_csv(ori)
-	#print df
 	
 	tmp_dict = {'日期':[],'Asia-SouthEast':[]}
 	arr = tmp.split(',')
@@ -141,11 +139,6 @@ def avgLow(df_period):
 
 	## for each fund
 	for c in cols:
-		#print c
-		#for name in period_mean_dict:
-		#	print name 
-		#print period_mean_dict
-		#period_mean_value = float(period_mean_dict[c])
 		try:
 			period_mean_value = float(period_mean_dict[c])
 			latest_value = float(df_period[c][pd.notnull(df_period[c])].iloc[-1])
@@ -216,7 +209,7 @@ def MA(name, df_period, days1=5, days2=20, days3=60):
 	df_period, short_df = divide_df(name, df_period, days1, days2, days3)
 
 	## calculate slope changes
-	days = 5
+	days = 3
 	tmp_df = df_period.iloc[-days:]
 	tmp_df['id'] = tmp_df.index
 	pre_tmp_df = df_period.iloc[-2*days:-days]

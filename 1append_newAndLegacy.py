@@ -111,6 +111,7 @@ tmp_df = tmp_df.sort(['日期'], ascending=[1])
 
 tmp_df.to_csv('Taiwan/all-Taiwan-df.csv', index=False)
 
+#httpx://www.sitca.org.tw/ROC/Industry/IN2106.aspx?pid=IN2213_02
 print 'Taiwan is finished'
 
 

@@ -24,6 +24,13 @@ import os
 import inspect
 import operator
 
+
+obs = '日本股票'
+
+
+
+
+
 today = datetime.today().date()
 LaDate = str(today)
 
@@ -43,16 +50,19 @@ for path, subdirs, files in os.walk(current_folder+'/Foreign/output'):
 
 
 
-def BIAS_ratio(name_list, df, threshold):
+def BIAS_ratio(name_list, df, threshold, slope_rate = -0.001, check_long_goup=True):
 	bias_dict = {}
 	for name in name_list:
 		try:
 			ma_dict, df_period, df_short = f.MA(name,df)
 		except:
 			continue
+		long_goup_state = True
+		if check_long_goup:
+			long_goup_state = ma_dict['lon_going_up']
+		
 		## seasonal BIAS
-		slope_rate = -0.03
-		if ma_dict['lon_s']>slope_rate and ma_dict['lon_going_up']:
+		if ma_dict['lon_s']>slope_rate and long_goup_state:
 			if ma_dict['pre_bias_v'] < threshold:
 				bias_dict[name] = ma_dict['pre_bias_v']
 
@@ -89,16 +99,17 @@ stockT_list = list(set(nameT_list)-set(currencyT_list)-set(interestT_list)-set(i
 
 
 print '--index--'
-
 biasT_rate_dict = BIAS_ratio(indexT_list, two_year, 0)
 top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/index', 40)
 
-
 print '--stock--'
-
-biasT_rate_dict = BIAS_ratio(stockT_list, two_year, -3)
-## top N bias
+biasT_rate_dict = BIAS_ratio(stockT_list, two_year, -2)
 top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/stock', 40)
+
+print '--observation--'
+biasT_rate_dict = BIAS_ratio([s for s in stockT_list if obs in s], two_year, 10, slope_rate=-1, check_long_goup=False)
+top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/observation', 10)
+
 
 
 print '\n-------------Foreign-------------'
@@ -139,51 +150,46 @@ for index, row in cat_df.iterrows():
 		print attr[2], attr[0], row[attr[2]], row[attr[0]]
 
 
-'''
-'''
+
 print '--index--'
 biasF_rate_dict = BIAS_ratio(indexF_list, three_year, 20)
-## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/index', 60)
-'''
-'''
+
 print '--stock--'
 biasF_rate_dict = BIAS_ratio(stockF_list, three_year, -4)
-## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/stock', 60)
-
 
 print '--balance--'
 biasF_rate_dict = BIAS_ratio(balanceF_list, three_year, 0)
-## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/balance', 60)
-
 
 print '--bond--'
 biasF_rate_dict = BIAS_ratio(bondF_list, three_year, 0)
-## top N bias
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/bond', 60)
 
-
+print '--observation--'
+biasF_rate_dict = BIAS_ratio([s for s in stockF_list if obs in s], three_year, 10, slope_rate=-1, check_long_goup=False)
+top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/observation', 60)
 
 
 print '-------------bought-------------'
 
 ## bought Taiwan
 two_year = f.getTaiwanData(25)
-necessary = ['復華全球資產證券化基金A','群益印度中小基金','群益印度中小基金',
-			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金','瀚亞巴西基金']
+necessary = ['群益印度中小基金','富蘭克林華美新世界股票基金',
+			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金','瀚亞巴西基金','德盛全球生技大壩基金','德盛安聯全球綠能趨勢基金']
 
 for name in necessary:
-	ma_dict, df_period, df_short = f.MA(name,two_year)
-
-	f.plot_line(name,name,df_period,df_short,'Taiwan/output/bought')
+	try:
+		ma_dict, df_period, df_short = f.MA(name,two_year)
+		f.plot_line(name,name,df_period,df_short,'Taiwan/output/bought')
+	except:
+		print name, 'failed'
 
 ## bought Foreign
 three_year = f.getForeignData(36)
-necessary = ['富蘭克林坦伯頓全球投資系列-全球平衡基金美元A(Qdis)股','富達基金－新興歐非中東基金(美元)','富蘭克林坦伯頓全球投資系列-亞洲成長基金美元A(Ydis)股']
+necessary = ['富蘭克林坦伯頓全球投資系列-全球平衡基金美元A(Qdis)股','富達基金－新興歐非中東基金(美元)','富蘭克林坦伯頓全球投資系列-亞洲成長基金美元A(Ydis)股','富蘭克林坦伯頓全球投資系列－全球債券總報酬基金美元A(acc)股']
 
 for name in necessary:
 	ma_dict, df_period, df_short = f.MA(name,three_year)
-
 	f.plot_line(name,name,df_period,df_short,'Foreign/output/bought')
