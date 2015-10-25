@@ -315,25 +315,7 @@ def plot_line(fund_name, png_name, df_long,df_short, folder):
 	fig.savefig(current_path+'/'+folder+'/'+png_name+'.png')
 	plt.close('all')
 
-def get_hot_term(string):
-	segmenter = CKIPSegmenter('changcheng.tu', 'a10206606')
-	trash_words = ['摩根','富蘭克林坦伯頓','優勢','國','富達','德盛',
-					'基金','勢力','世紀','瀚亞','德盛德利','金','全方位',
-					'霸菱','單位','系列','安聯','元','施羅德','巴百','柏瑞'
-					'利達','主題','收益','累積型','股','國','新光','股份','幣'
-					'小型','利達','國家','投資','趨勢','柏瑞','市場','歐','法',
-					'英鎊','美元','景順','標智','盧森堡','保德信','集團','上證'
-					'國際','寶盛','機會']
-	hot_words = []
-	try:
-		segmented_result = segmenter.process(string.decode('utf-8'))
-		for row in segmented_result['result'][0]:
-			if row['pos']=='N':
-				if row['term'] not in trash_words:
-					hot_words.append(row['term'])
-	except:
-		print string, 'can not be decode'
-	return hot_words
+
 
 def nameF_dict():
 	tmp_dict = {}

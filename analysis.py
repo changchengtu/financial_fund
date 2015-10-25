@@ -34,12 +34,14 @@ obs = '日本股票'
 today = datetime.today().date()
 LaDate = str(today)
 
+'''
 ## remove legacy folders
 current_folder = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 for path, subdirs, files in os.walk(current_folder+'/Taiwan/output'):
 	for folder_name in subdirs:
 		shutil.rmtree(current_folder+'/Taiwan/output/'+folder_name)
 		os.mkdir(current_folder+'/Taiwan/output/'+folder_name)
+'''
 
 ## remove legacy folders
 current_folder = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -50,21 +52,21 @@ for path, subdirs, files in os.walk(current_folder+'/Foreign/output'):
 
 
 
-def BIAS_ratio(name_list, df, threshold, slope_rate = -0.001, check_long_goup=True):
+def BIAS_ratio(name_list, df, threshold, check_long_goup=True):
 	bias_dict = {}
 	for name in name_list:
 		try:
 			ma_dict, df_period, df_short = f.MA(name,df)
 		except:
 			continue
-		long_goup_state = True
-		if check_long_goup:
-			long_goup_state = ma_dict['lon_going_up']
+		#long_goup_state = True
+		#if check_long_goup:
+			#long_goup_state = ma_dict['lon_going_up']
 		
 		## seasonal BIAS
-		if ma_dict['lon_s']>slope_rate and long_goup_state:
-			if ma_dict['pre_bias_v'] < threshold:
-				bias_dict[name] = ma_dict['pre_bias_v']
+		#if ma_dict['lon_s']>slope_rate and long_goup_state:
+		if ma_dict['pre_bias_v'] < threshold:
+			bias_dict[name] = ma_dict['pre_bias_v']
 
 	return bias_dict
 
@@ -78,7 +80,7 @@ def top_N_bias(bias_dict, df, save_path, N):
 		rate = sorted_bias_dict[fund_name]
 		f.plot_line(fund_name,str(rate)+'_'+fund_name, df_period, df_short, save_path)
 
-
+'''
 print '\n-------------Taiwan-------------'
 
 two_year = f.getTaiwanData(25)
@@ -109,7 +111,7 @@ top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/stock', 40)
 print '--observation--'
 biasT_rate_dict = BIAS_ratio([s for s in stockT_list if obs in s], two_year, 10, slope_rate=-1, check_long_goup=False)
 top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/observation', 10)
-
+'''
 
 
 print '\n-------------Foreign-------------'
@@ -132,21 +134,26 @@ balanceF_list = []
 otherF_list = []
 currencyF_list = []
 
+#to get attribute name
 attr = cat_df.columns.tolist()
+fund_class = attr[3]
+fund_name = attr[1]
+
+# start comparing
 for index, row in cat_df.iterrows():
 	try:
-		if '股票型' in row[attr[2]]:
-			stockF_list.append(f.text_clean(row[attr[0]]))
-		elif '固定收益型' in row[attr[2]]:
-			bondF_list.append(f.text_clean(row[attr[0]]))
-		elif '指數' in row[attr[2]]:
-			indexF_list.append(f.text_clean(row[attr[0]]))
-		elif '貨幣市場型' in row[attr[2]]:
-			currencyF_list.append(f.text_clean(row[attr[0]]))
-		elif '平衡型' in row[attr[2]]:
-			balanceF_list.append(f.text_clean(row[attr[0]]))
+		if '股票型' in row[fund_class]:
+			stockF_list.append(f.text_clean(row[fund_name]))
+		elif '固定收益型' in row[fund_class]:
+			bondF_list.append(f.text_clean(row[fund_name]))
+		elif '指數' in row[fund_class]:
+			indexF_list.append(f.text_clean(row[fund_name]))
+		elif '貨幣市場型' in row[fund_class]:
+			currencyF_list.append(f.text_clean(row[fund_name]))
+		elif '平衡型' in row[fund_class]:
+			balanceF_list.append(f.text_clean(row[fund_name]))
 		else:
-			otherF_list.append(f.text_clean(row[attr[0]]))
+			otherF_list.append(f.text_clean(row[fund_name]))
 	except:
 		print attr[2], attr[0], row[attr[2]], row[attr[0]]
 
@@ -164,28 +171,13 @@ print '--balance--'
 biasF_rate_dict = BIAS_ratio(balanceF_list, three_year, 0)
 top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/balance', 60)
 
-print '--bond--'
-biasF_rate_dict = BIAS_ratio(bondF_list, three_year, 0)
-top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/bond', 60)
-
-print '--observation--'
-biasF_rate_dict = BIAS_ratio([s for s in stockF_list if obs in s], three_year, 10, slope_rate=-1, check_long_goup=False)
-top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/observation', 60)
+#print '--bond--'
+#biasF_rate_dict = BIAS_ratio(bondF_list, three_year, 0)
+#top_N_bias(biasF_rate_dict, three_year, 'Foreign/output/bond', 60)
 
 
-print '-------------bought-------------'
+print '-------------targeted-------------'
 
-## bought Taiwan
-two_year = f.getTaiwanData(25)
-necessary = ['群益印度中小基金','富蘭克林華美新世界股票基金',
-			'德盛安聯中國東協新世紀基金','德盛安聯全球油礦金趨勢基金','第一金全球大趨勢基金','瀚亞巴西基金','德盛全球生技大壩基金','德盛安聯全球綠能趨勢基金']
-
-for name in necessary:
-	try:
-		ma_dict, df_period, df_short = f.MA(name,two_year)
-		f.plot_line(name,name,df_period,df_short,'Taiwan/output/bought')
-	except:
-		print name, 'failed'
 
 ## bought Foreign
 three_year = f.getForeignData(36)
@@ -193,4 +185,4 @@ necessary = ['富蘭克林坦伯頓全球投資系列-全球平衡基金美元A(
 
 for name in necessary:
 	ma_dict, df_period, df_short = f.MA(name,three_year)
-	f.plot_line(name,name,df_period,df_short,'Foreign/output/bought')
+	f.plot_line(name,name,df_period,df_short,'Foreign/output/observation')

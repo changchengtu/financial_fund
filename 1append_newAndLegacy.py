@@ -158,27 +158,23 @@ new_all_cols = list(set(new_cols+old_cols)) ## remove duplicated names
 date_arr = []
 tmp_arr = []
 weekend = set([5, 6])
-for d in range((datetime.now()-(datetime.now() - relativedelta(years=3))).days):
+for d in range((datetime.now()-datetime(2012,10,29)).days):
 	a_date = today-relativedelta(days=d)
 	if a_date.weekday() not in weekend:
 		tmp_arr.append(np.nan)
 		date_arr.append(str(a_date))
 
 new_all_dict['日期']=date_arr
-#new_all_dict['日期']=[]
+
 for name in new_all_cols:
 	if name == '日期':
 		None
-		#new_all_dict[name] = date_arr
-		#new_all_dict[name] = []
 	else:
 		new_all_dict[name] = tmp_arr
 
 new_all_df = pd.DataFrame(new_all_dict)
 ##for insert
 new_all_df.index = new_all_df['日期']
-#print new_all_df
-
 
 
 ## insert old data
@@ -205,9 +201,6 @@ for index, row in new_df.iterrows():
 	## 3 years only
 	if date in date_arr:
 		new_all_df[name][date]=value
-
-
-#print new_all_df
 	
 
 #new_all_df = new_all_df.drop_duplicates(['日期'])
