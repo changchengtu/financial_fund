@@ -114,10 +114,11 @@ top_N_bias(biasT_rate_dict, two_year, 'Taiwan/output/observation', 10)
 
 print '\n-------------Foreign-------------'
 
+## get data from csv
 three_year = f.getForeignData(36)
 six_m = f.getForeignData(6)
 three_m = f.getForeignData(3)
-	
+
 nameF_list = six_m.columns.tolist()
 nameF_list.remove('日期')
 
