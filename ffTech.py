@@ -66,7 +66,7 @@ def get_index_today():
 	#return df
 
 def getTaiwanData(period):
-	df_curr = pd.read_csv('Taiwan//all-Taiwan-df.csv')
+	df_curr = pd.read_csv('Taiwan/all-Taiwan-df.csv')
 
 	# period months
 	period_mons = today-relativedelta(months=period)
@@ -75,14 +75,23 @@ def getTaiwanData(period):
 	return df_period
 
 
-def getForeignData(period):
+def getForeignData(period, arr):
 	df_curr = pd.read_csv('Foreign/all-Foreign-df.csv')
 
 	# period months
 	period_mons = today-relativedelta(months=period)
 	df_period = df_curr[df_curr['日期']>str(period_mons)]
 
+	new_cols = []
+	for name in df_curr.columns:
+		for a in arr:
+			if a in name:
+				new_cols.append(name)
+
+	df_period = df_period[new_cols]
+
 	return df_period
+
 
 
 def trendline(df_period):
@@ -124,31 +133,7 @@ def drop(df_period, c):
 
 	return results
 
-## diference between average and the latest value
-def avgLow(df_period):
-	print '-------------------------'
-	print 'avgLow'
-	print '-------------------------'
-	results = {}
-	# all funds' names
-	cols = df_period.columns.tolist()[1:]
 
-	# mean value
-	period_mean_dict = dict(df_period.mean(axis=0))
-
-
-	## for each fund
-	for c in cols:
-		try:
-			period_mean_value = float(period_mean_dict[c])
-			latest_value = float(df_period[c][pd.notnull(df_period[c])].iloc[-1])
-			avgLow_percentage = (latest_value - period_mean_value)/period_mean_value
-			results[c] = float(int(avgLow_percentage*1000))/10
-		except:	
-			#print c, 'is out'
-			None
-
-	return results
 
 def divide_df(name, df_period, days1=5, days2=20, days3=60):
 
